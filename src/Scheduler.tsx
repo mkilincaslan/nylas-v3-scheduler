@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { NylasSchedulerEditor, NylasScheduling } from "@nylas/react";
+import { NylasSchedulerConnectorInterface } from "@nylas/web-elements/dist/types/connector/connector-interface";
 /*
  * Configuration for schedule editor. To know more about options see:
  * https://developer.nylas.com/docs/v3/scheduler/#choose-a-hosting-option-for-scheduling-pages
@@ -65,8 +66,8 @@ const Scheduler = (): JSX.Element => {
       height="100%"
       // referrerpolicy='strict-origin-when-cross-origin'
       frameBorder="0"
-      webkitallowfullscreen="webkitallowfullscreen"
-      mozallowfullscreen="mozallowfullscreen"
+      // web="webkitallowfullscreen"
+      // mozallowfullscreen="mozallowfullscreen"
       allowFullScreen={true}
     ></iframe>
   );
@@ -100,11 +101,6 @@ const Scheduler = (): JSX.Element => {
         configurationId={configId}
         schedulerPreviewLink={`${window.location.origin}/scheduler?config_id={config.id}`}
         nylasSessionsConfig={identitySettings}
-        eventOverrides={{
-          createButtonClick: async (event, connector) => {
-            // TODO: handle the slug creation here when we will use slugs instead of Scheduler self hosting
-          },
-        }}
         defaultSchedulerConfigState={{
           selectedConfiguration: {
             scheduler: {
@@ -160,7 +156,8 @@ const Scheduler = (): JSX.Element => {
         configurationId={configId}
         schedulerApiUrl={SCHEDULER_BASE_API_URL}
         eventOverrides={{
-          configSettingsLoaded: async (event, connector) => {
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          configSettingsLoaded: async (event, _: NylasSchedulerConnectorInterface | undefined) => {
             const { settings } = event.detail;
 
             if (!settings.data.appearance) {
@@ -170,14 +167,14 @@ const Scheduler = (): JSX.Element => {
             setAppearance(settings.data.appearance);
           },
         }}
-        localization={{
-          en: {
-            bookNowButton: "CONFIRM",
-          },
-          sv: {
-            bookNowButton: "BEKRÄFTA",
-          },
-        }}
+        // localization={{
+        //   en: {
+        //     bookNowButton: "CONFIRM",
+        //   },
+        //   sv: {
+        //     bookNowButton: "BEKRÄFTA",
+        //   },
+        // }}
         bookingInfo={{
           primaryParticipant: {
             name,

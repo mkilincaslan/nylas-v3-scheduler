@@ -7,6 +7,7 @@ import { NylasSchedulerConnectorInterface } from "@nylas/web-elements/dist/types
  */
 const BlueCallBrandColor = "#2649FF";
 const SCHEDULER_BASE_API_URL = "https://api.eu.nylas.com";
+const CompanyLogoURL = "https://www.bluecallapp.com/assets/image-BdxxnILg.png";
 
 const Scheduler = (): JSX.Element => {
   const clientId = import.meta.env.VITE_NYLAS_CLIENT_ID || "";
@@ -43,6 +44,9 @@ const Scheduler = (): JSX.Element => {
   const name = urlParams.get("name") || "";
   const nickname = urlParams.get("nickname") || "";
   const email = urlParams.get("email") || "";
+  const therapistName = urlParams.get("therapist_name") || "";
+  const rescheduleBookingRef = urlParams.get("reschedule_booking_ref") || "";
+  const cancelBookingRef = urlParams.get("cancel_booking_ref") || "";
 
   /* Identity settings of Nylas scheduler editor
    * https://developer.nylas.com/docs/v3/scheduler/configure-authentication/#download-nylas-identity-package
@@ -90,8 +94,8 @@ const Scheduler = (): JSX.Element => {
           backgroundColor: "#2649FF",
           border: 0,
           borderRadius: 4,
-          cursor: 'pointer',
-          color: "#fff"
+          cursor: "pointer",
+          color: "#fff",
         }}
       >
         {guideMe ? "Hide Guide" : "Show Guide"}
@@ -101,6 +105,13 @@ const Scheduler = (): JSX.Element => {
         configurationId={configId}
         schedulerPreviewLink={`${window.location.origin}/scheduler?config_id={config.id}`}
         nylasSessionsConfig={identitySettings}
+        enableEventTypes={{
+          one_on_one: true,
+          collective: false,
+          max_fairness: false,
+          max_availability: false,
+          group: false,
+        }}
         defaultSchedulerConfigState={{
           selectedConfiguration: {
             scheduler: {
@@ -111,6 +122,8 @@ const Scheduler = (): JSX.Element => {
               available_days_in_future: 60,
               hide_cancellation_options: true,
               hide_rescheduling_options: true,
+              rescheduling_url: `${window.location.origin}/scheduler?reschedule_booking_ref=:booking_ref`, // The URL of the email notification includes the booking reference
+              cancellation_url: `${window.location.origin}/scheduler?cancel_booking_ref=:booking_ref`,
               additional_fields: {
                 nickname: {
                   label: "Nickname",
@@ -119,18 +132,26 @@ const Scheduler = (): JSX.Element => {
               },
             },
             event_booking: {
-              title: "BlueCall Session",
+              title: `${therapistName} - BlueCall Session`,
               location: "https://link.bluecallapp.com",
+              description: "UserId: ${invitee}\n User Nickname: ${nickname}", // Populating the fields in the description of the event
             },
             availability: {
+              availability_rules: {
+                availability_method: "collective",
+                buffer: {
+                  after: 0,
+                  before: 0,
+                },
+              },
+              round_to: 60,
               duration_minutes: 45,
               interval_minutes: 60,
             },
             requires_session_auth: false, // Creates a public configuration which doesn't require a session
             appearance: {
               // company_name: 'BlueCall',
-              company_logo_url:
-                "https://www.bluecallapp.com/wp-content/uploads/2022/06/logo.png",
+              company_logo_url: CompanyLogoURL,
               color: BlueCallBrandColor, // Color for dates in calendar when user is choosing days
               submit_button_label: "CONFIRM",
               thank_you_message: "Your session is booked!",
@@ -154,27 +175,35 @@ const Scheduler = (): JSX.Element => {
       <NylasScheduling
         mode="app"
         configurationId={configId}
+        cancelBookingRef={cancelBookingRef}
+        rescheduleBookingRef={rescheduleBookingRef}
         schedulerApiUrl={SCHEDULER_BASE_API_URL}
         eventOverrides={{
-          // eslint-disable-next-line @typescript-eslint/no-unused-vars
-          configSettingsLoaded: async (event, _: NylasSchedulerConnectorInterface | undefined) => {
+          configSettingsLoaded: async (
+            event,
+            _: NylasSchedulerConnectorInterface | undefined
+          ) => {
             const { settings } = event.detail;
 
             if (!settings.data.appearance) {
               setAppearance(undefined);
               return;
             }
-            setAppearance(settings.data.appearance);
+
+            setAppearance({
+              ...settings.data.appearance,
+              company_logo_url: CompanyLogoURL,
+            });
           },
         }}
-        // localization={{
-        //   en: {
-        //     bookNowButton: "CONFIRM",
-        //   },
-        //   sv: {
-        //     bookNowButton: "BEKRÄFTA",
-        //   },
-        // }}
+        localization={{
+          en: {
+            bookNowButton: "CONFIRM",
+          },
+          sv: {
+            bookNowButton: "BEKRÄFTA",
+          },
+        }}
         bookingInfo={{
           primaryParticipant: {
             name,

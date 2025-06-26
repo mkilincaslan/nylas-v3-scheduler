@@ -48,6 +48,8 @@ const Scheduler = (): JSX.Element => {
   const rescheduleBookingRef = urlParams.get("reschedule_booking_ref") || "";
   const cancelBookingRef = urlParams.get("cancel_booking_ref") || "";
 
+  console.log('------- reschedule_booking_ref:', rescheduleBookingRef);
+
   /* Identity settings of Nylas scheduler editor
    * https://developer.nylas.com/docs/v3/scheduler/configure-authentication/#download-nylas-identity-package
    */
